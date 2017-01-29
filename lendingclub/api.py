@@ -8,10 +8,10 @@ the MIT License: https://opensource.org/licenses/MIT
 
 import requests
 
-# TODO: error handling
-# TODO: keep args named "payload"?
-class API(object):
 
+# TODO: error handling
+# TODO: more robustness etc...probably implement classes that use this api
+class API(object):
     base_url = 'https://api.lendingclub.com/api/investor/'
 
     def __init__(self, account_id=None, token=None, version='v1'):
@@ -23,6 +23,10 @@ class API(object):
         self.header = {'Authorization': self.__token, 'Content-Type': 'application/json'}
 
     def get_account_summary(self):
+        """
+
+        :return:
+        """
         r = requests.get(self.accounts_url + '/summary', headers=self.header)
         return r.json()
 
@@ -31,24 +35,30 @@ class API(object):
         r = requests.get(self.accounts_url + '/availablecash', headers=self.header)
         return r.json().get('availableCash')
 
-    def add_funds(self, payload):
-        r = requests.post(self.accounts_url + '/funds/add', data=payload, headers=self.header)
+    def add_funds(self, amount, transfer_frequency):
+        payload = { 'transferFrequency': transfer_frequency,
+                    'amount': amount}
+        r = requests.post(self.accounts_url + '/funds/add', json=payload, headers=self.header)
         return r.json()
 
-    def withdraw_funds(self, payload):
-        r = requests.post(self.accounts_url + '/funds/withdraw', data=payload, headers=self.header)
+    # TODO: test
+    def withdraw_funds(self, amount):
+        payload = { 'amount': amount}
+        r = requests.post(self.accounts_url + '/funds/withdraw', json=payload, headers=self.header)
         return r.json()
 
     def get_pending_transfers(self):
         r = requests.get(self.accounts_url + '/funds/pending', headers=self.header)
         return r.json()
 
-    def cancel_tranfers(self, payload):
-        r = requests.post(self.accounts_url + '/funds/cancel', data=payload, headers=self.header)
+    def cancel_tranfers(self, transfer_ids):
+        payload = { 'transferIds': transfer_ids}
+        r = requests.post(self.accounts_url + '/funds/cancel', json=payload, headers=self.header)
         return r.json()
 
+    # TODO: test
     def get_notes_owned(self, detailed=False):
-        if detailed == True:
+        if detailed:
             url = self.accounts_url + '/detailednotes'
         else:
             url = self.accounts_url + '/notes'
@@ -60,22 +70,30 @@ class API(object):
         r = requests.get(self.accounts_url + '/portfolios', headers=self.header)
         return r.json()
 
-    def create_portfolio(self, payload):
-        r = requests.post(self.accounts_url + '/portfolios', data=payload, headers=self.header)
+    def create_portfolio(self, name, description):
+        payload = { 'actorId': self.__account_id,
+                    'portfolioName': name,
+                    'portfolioDescription': description}
+
+        r = requests.post(self.accounts_url + '/portfolios', json=payload, headers=self.header)
         return r.json()
 
-    def submit_order(self, payload):
-        r = requests.post(self.accounts_url + '/orders', data=payload, headers=self.header)
+    # TODO: test
+    def submit_order(self, orders):
+        payload = { 'aid': self.__account_id,
+                    'orders': orders}
+        r = requests.post(self.accounts_url + '/orders', json=payload, headers=self.header)
         return r.json()
 
+    # TODO: test
     def get_filters(self):
         r = requests.get(self.accounts_url + '/filters', headers=self.header)
         return r.json()
 
     def get_listed_loans(self, show_all=True, filter_id=None):
-        if show_all == True:
-            data = { 'showAll': 'true',
-                     'filterId': filter_id}
+        if show_all:
+            data = {'showAll': 'true',
+                    'filterId': filter_id}
         else:
             data = {'showAll': 'false',
                     'filterId': filter_id}
