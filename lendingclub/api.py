@@ -9,9 +9,6 @@ the MIT License: https://opensource.org/licenses/MIT
 import requests
 
 
-# TODO: error handling
-# TODO: more robustness etc...probably implement classes that use this api
-# TODO: should dollar amounts be strings?
 class API(object):
     base_url = 'https://api.lendingclub.com/api/investor/'
 
@@ -33,7 +30,7 @@ class API(object):
             a dictionary containing the account summary details
 
         """
-        r = requests.get(self.accounts_url + '/summary', headers=self.header)
+        r = requests.get(self.accounts_url + '/summary', headers=self.header, timeout=5.0)
         return r.json()
 
     # TODO: convert to proper types?
@@ -43,12 +40,12 @@ class API(object):
 
         Returns
         -------
-        str
+        float
             the available cash as a string
 
         """
-        r = requests.get(self.accounts_url + '/availablecash', headers=self.header)
-        return r.json().get('availableCash')
+        r = requests.get(self.accounts_url + '/availablecash', headers=self.header, timeout=5.0)
+        return float(r.json().get('availableCash'))
 
     def add_funds(self, amount, transfer_frequency):
         """
@@ -56,7 +53,7 @@ class API(object):
 
         Parameters
         ----------
-        amount: str
+        amount: float
             the dollar amount to transfer
 
         transfer_frequency: str
@@ -70,7 +67,7 @@ class API(object):
         """
         payload = {'transferFrequency': transfer_frequency,
                    'amount': amount}
-        r = requests.post(self.accounts_url + '/funds/add', json=payload, headers=self.header)
+        r = requests.post(self.accounts_url + '/funds/add', json=payload, headers=self.header, timeout=5.0)
         return r.json()
 
     # TODO: test
@@ -80,7 +77,7 @@ class API(object):
 
         Parameters
         ----------
-        amount: str
+        amount: float
             the dollar amount to withdraw
 
         Returns
@@ -90,7 +87,7 @@ class API(object):
 
         """
         payload = {'amount': amount}
-        r = requests.post(self.accounts_url + '/funds/withdraw', json=payload, headers=self.header)
+        r = requests.post(self.accounts_url + '/funds/withdraw', json=payload, headers=self.header, timeout=5.0)
         return r.json()
 
     def get_pending_transfers(self):
@@ -103,7 +100,7 @@ class API(object):
             the list of pending funds transfers
 
         """
-        r = requests.get(self.accounts_url + '/funds/pending', headers=self.header)
+        r = requests.get(self.accounts_url + '/funds/pending', headers=self.header, timeout=5.0)
         return r.json().get('transfers', [])
 
     def cancel_transfers(self, transfer_ids):
@@ -122,7 +119,7 @@ class API(object):
 
         """
         payload = {'transferIds': transfer_ids}
-        r = requests.post(self.accounts_url + '/funds/cancel', json=payload, headers=self.header)
+        r = requests.post(self.accounts_url + '/funds/cancel', json=payload, headers=self.header, timeout=5.0)
         return r.json().get('cancellationResults', [])
 
     # TODO: test
@@ -146,7 +143,7 @@ class API(object):
         else:
             url = self.accounts_url + '/notes'
 
-        r = requests.get(url, headers=self.header)
+        r = requests.get(url, headers=self.header, timeout=5.0)
         return r.json().get('myNotes', [])
 
     def get_portfolios_owned(self):
@@ -161,7 +158,7 @@ class API(object):
             a list of portfolio details
 
         """
-        r = requests.get(self.accounts_url + '/portfolios', headers=self.header)
+        r = requests.get(self.accounts_url + '/portfolios', headers=self.header, timeout=5.0)
         return r.json().get('myPortfolios', [])
 
     def create_portfolio(self, name, description):
@@ -188,7 +185,7 @@ class API(object):
                    'portfolioName': name,
                    'portfolioDescription': description}
 
-        r = requests.post(self.accounts_url + '/portfolios', json=payload, headers=self.header)
+        r = requests.post(self.accounts_url + '/portfolios', json=payload, headers=self.header, timeout=5.0)
         return r.json()
 
     # TODO: test
@@ -218,7 +215,7 @@ class API(object):
         """
         payload = {'aid': self.__account_id,
                    'orders': orders}
-        r = requests.post(self.accounts_url + '/orders', json=payload, headers=self.header)
+        r = requests.post(self.accounts_url + '/orders', json=payload, headers=self.header, timeout=5.0)
         return r.json()
 
     # TODO: test
@@ -232,7 +229,7 @@ class API(object):
             a list of filter data (id and name)
 
         """
-        r = requests.get(self.accounts_url + '/filters', headers=self.header)
+        r = requests.get(self.accounts_url + '/filters', headers=self.header, timeout=5.0)
         return r.json()
 
     def get_listed_loans(self, show_all=True, filter_id=None):
@@ -251,8 +248,8 @@ class API(object):
 
         Returns
         -------
-        [dict]
-            a list of loan details
+        dict
+            a dict with the as-of-date and loan details list
 
         """
         if show_all:
@@ -262,5 +259,5 @@ class API(object):
             data = {'showAll': 'false',
                     'filterId': filter_id}
 
-        r = requests.get(self.loans_url + '/listing', headers=self.header, params=data)
+        r = requests.get(self.loans_url + '/listing', headers=self.header, params=data, timeout=10.0)
         return r.json()
