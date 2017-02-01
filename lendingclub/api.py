@@ -33,7 +33,6 @@ class API(object):
         r = requests.get(self.accounts_url + '/summary', headers=self.header, timeout=5.0)
         return r.json()
 
-    # TODO: convert to proper types?
     def get_available_cash(self):
         """
         Gets the current available cash in the account
@@ -210,7 +209,7 @@ class API(object):
         Returns
         -------
         [dict]
-            the order status for each order request
+            the order confirmations for each order request
 
         """
         payload = {'aid': self.__account_id,
@@ -218,7 +217,6 @@ class API(object):
         r = requests.post(self.accounts_url + '/orders', json=payload, headers=self.header, timeout=5.0)
         return r.json()
 
-    # TODO: test
     def get_filters(self):
         """
         Gets the list of filters defined within the account.
